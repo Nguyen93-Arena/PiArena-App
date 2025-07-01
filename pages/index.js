@@ -1,54 +1,51 @@
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [piReady, setPiReady] = useState(false);
+  const [pi, setPi] = useState(null);
+  const [status, setStatus] = useState("🔄 Đang kiểm tra SDK...");
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState("🔄 Đang khởi tạo...");
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (typeof window !== 'undefined' && window.Pi && window.Pi.init) {
-        try {
-          window.Pi.init({ version: "2.0" });
-          setPiReady(true);
-          setStatus("✅ Pi SDK đã sẵn sàng.");
-          clearInterval(interval);
-        } catch (e) {
-          setError("❌ Không thể khởi tạo Pi SDK.");
-          clearInterval(interval);
-        }
-      }
-    }, 500);
+    if (typeof window !== 'undefined' && window.Pi) {
+      // Init SDK
+      window.Pi.init({
+        version: "2.0",
+        sandbox: true // Đổi thành false nếu bạn đang dùng mainnet
+      });
 
-    return () => clearInterval(interval);
+      setPi(window.Pi);
+      setStatus("✅ Pi SDK đã sẵn sàng.");
+    } else {
+      setStatus("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
+    }
   }, []);
 
   const handlePayment = async () => {
-    if (!window.Pi || !window.Pi.createPayment) {
-      setError("❌ Pi Network SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
+    if (!pi) {
+      setError("❌ Pi Network SDK chưa sẵn sàng. Hãy mở trong Pi Browser.");
       return;
     }
 
     try {
-      const payment = await window.Pi.createPayment({
+      const payment = await pi.createPayment({
         amount: 0.001,
         memo: "Arena Test Payment",
         metadata: { type: "test" },
         onReadyForServerApproval: (paymentId) => {
-          console.log("✅ Ready for server approval:", paymentId);
+          console.log("✅ Server Approval:", paymentId);
         },
         onReadyForServerCompletion: (paymentId, txid) => {
-          console.log("✅ Ready for server completion:", paymentId, txid);
+          console.log("✅ Server Completion:", paymentId, txid);
         },
         onCancel: (paymentId) => {
-          console.log("❌ Cancelled:", paymentId);
+          console.warn("❌ Bị huỷ:", paymentId);
         },
         onError: (err, paymentId) => {
-          console.error("❌ Payment error:", err, paymentId);
+          console.error("❌ Lỗi thanh toán:", err, paymentId);
         }
       });
 
-      console.log("✅ Payment created:", payment);
+      console.log("🎉 Payment created:", payment);
     } catch (err) {
       console.error("❌ Lỗi khi tạo payment:", err);
       setError("❌ Đã xảy ra lỗi khi tạo thanh toán.");
