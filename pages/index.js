@@ -6,8 +6,10 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Kiểm tra khi Pi SDK đã được load
     if (typeof window !== 'undefined' && window.Pi) {
+      // Gọi init() trước khi dùng các phương thức khác
+      window.Pi.init({ version: "2.0" });
+
       setPi(window.Pi);
       setStatus("✅ Pi SDK đã sẵn sàng.");
     } else {
