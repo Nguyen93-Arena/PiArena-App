@@ -32,7 +32,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ textAlign: "center", padding: "2rem" }}>
+    <main style={{ textAlign: "center", padding: "2rem" }}>
       <h1>Arena Pi Payment Test</h1>
       <p>
         {sdkReady
@@ -52,6 +52,6 @@ export default function Home() {
         Thanh toán thử
       </button>
       <p style={{ marginTop: "1rem" }}>{paymentStatus}</p>
-    </div>
+    </main>
   );
 }
