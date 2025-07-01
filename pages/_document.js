@@ -1,11 +1,11 @@
 // pages/_document.js
-import { Html, Head, Main, NextScript } from 'next/document'
+import { Html, Head, Main, NextScript } from 'next/document';
 
 export default function Document() {
   return (
     <Html>
       <Head>
-        {/* Nhúng Pi SDK */}
+        {/* Nhúng Pi Network SDK */}
         <script
           src="https://sdk.minepi.com/pi-sdk.js"
           defer
@@ -16,5 +16,5 @@ export default function Document() {
         <NextScript />
       </body>
     </Html>
-  )
+  );
 }
