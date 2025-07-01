@@ -1,57 +1,47 @@
-import { useEffect, useState } from "react";
+// pages/index.js
+import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [sdkReady, setSdkReady] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState("");
+  const [piReady, setPiReady] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Pi) {
-      setSdkReady(true);
+    if (typeof window !== 'undefined') {
+      const checkPi = setInterval(() => {
+        if (window.Pi) {
+          setPiReady(true);
+          clearInterval(checkPi);
+        }
+      }, 500);
     }
   }, []);
 
-  const handlePayment = async () => {
-    if (!window.Pi) {
-      alert("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
+  const handleTestPayment = async () => {
+    if (!piReady || !window.Pi) {
+      setMessage('⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.');
       return;
     }
 
     try {
-      const paymentData = {
+      const payment = await window.Pi.createPayment({
         amount: 0.001,
-        memo: "Thanh toán thử Arena",
+        memo: "Test Payment",
         metadata: { type: "test" },
-      };
+      });
 
-      const payment = await window.Pi.createPayment(paymentData);
-      setPaymentStatus("✔️ Thanh toán thành công!");
+      setMessage(`✅ Thanh toán thành công! Payment ID: ${payment.identifier}`);
     } catch (error) {
-      console.error("Lỗi thanh toán:", error);
-      setPaymentStatus("❌ Lỗi thanh toán hoặc bị hủy.");
+      setMessage(`❌ Lỗi: ${error.message || error}`);
     }
   };
 
   return (
-    <main style={{ textAlign: "center", padding: "2rem" }}>
+    <main style={{ padding: '2rem', fontFamily: 'Arial' }}>
       <h1>Arena Pi Payment Test</h1>
-      <p>
-        {sdkReady
-          ? "✅ SDK Pi đã sẵn sàng"
-          : "⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser."}
-      </p>
-      <button
-        onClick={handlePayment}
-        disabled={!sdkReady}
-        style={{
-          marginTop: "1rem",
-          padding: "1rem 2rem",
-          fontSize: "16px",
-          cursor: sdkReady ? "pointer" : "not-allowed",
-        }}
-      >
+      <button onClick={handleTestPayment} style={{ padding: '10px 20px' }}>
         Thanh toán thử
       </button>
-      <p style={{ marginTop: "1rem" }}>{paymentStatus}</p>
+      <p style={{ marginTop: '20px', color: 'red' }}>{message}</p>
     </main>
   );
 }
