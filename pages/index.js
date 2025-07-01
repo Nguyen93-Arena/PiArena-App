@@ -1,57 +1,50 @@
+// pages/index.js
 import { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Pi) {
-      window.Pi.init({ version: "2.0" });
+      console.log('Pi SDK loaded');
+    } else {
+      console.log('Pi SDK not found');
     }
   }, []);
 
-  const handlePayment = async () => {
+  const handlePayment = () => {
     if (!window.Pi) {
-      alert('Pi Network SDK chưa được tải đúng. Hãy kiểm tra tích hợp SDK.');
+      alert('Pi SDK chưa được tải. Hãy mở app này trong Pi Browser.');
       return;
     }
 
-    try {
-      const paymentData = {
-        amount: 0.001,
-        memo: "Test Payment for Domain Verification",
-        metadata: { type: "test" }
-      };
-
-      const callbacks = {
-        onReadyForServerApproval: (paymentId) => {
-          console.log("Ready for server approval:", paymentId);
-        },
-        onReadyForServerCompletion: (paymentId, txid) => {
-          console.log("Ready for server completion:", paymentId, txid);
-        },
-        onCancel: (paymentId) => {
-          console.log("Payment cancelled:", paymentId);
-        },
-        onError: (error, payment) => {
-          console.error("Payment error:", error, payment);
-        }
-      };
-
-      window.Pi.createPayment(paymentData, callbacks);
-    } catch (error) {
-      console.error("Error initiating payment:", error);
-    }
+    window.Pi.createPayment({
+      amount: 0.01,
+      memo: "Test payment",
+      metadata: { type: "test" },
+      onReadyForServerApproval: (paymentId) => {
+        console.log("Ready for server approval", paymentId);
+      },
+      onReadyForServerCompletion: (paymentId, txid) => {
+        console.log("Ready for server completion", paymentId, txid);
+      },
+      onCancel: (paymentId) => {
+        console.log("Payment cancelled", paymentId);
+      },
+      onError: (error, payment) => {
+        console.error("Payment error", error, payment);
+      }
+    });
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <h1>Pi Arena App</h1>
-      <p>Nhấn nút bên dưới để test thanh toán trên Pi Testnet.</p>
-      <button 
+    <div style={{ padding: "40px", textAlign: "center" }}>
+      <h1>Test Pi Payment</h1>
+      <p>Hãy nhấn vào nút dưới để thực hiện thanh toán thử.</p>
+      <button
         onClick={handlePayment}
-        style={{ padding: '1rem 2rem', fontSize: '1.2rem', cursor: 'pointer' }}
+        style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer" }}
       >
         Thanh toán thử
       </button>
     </div>
   );
 }
-
