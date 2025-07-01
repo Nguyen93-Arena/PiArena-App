@@ -4,8 +4,8 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        {/* Nhúng Pi SDK tại đây */}
-        <script src="https://sdk.minepi.com/pi-sdk.js" />
+        {/* Đây là vị trí chính xác để nhúng SDK */}
+        <script src="https://sdk.minepi.com/pi-sdk.js"></script>
       </Head>
       <body>
         <Main />
