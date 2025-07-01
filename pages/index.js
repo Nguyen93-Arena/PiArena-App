@@ -11,8 +11,7 @@ export default function Home() {
         if (window.Pi && window.Pi.init && window.Pi.createPayment) {
           // ✅ Khởi tạo SDK ở chế độ sandbox
           try {
-            window.Pi.init({ version: "2.0", sandbox: true });
-            setPi(window.Pi);
+            window.Pi.init({ version: "2.0" });
             setStatus("✅ Pi SDK đã sẵn sàng.");
             clearInterval(checkPi);
           } catch (err) {
