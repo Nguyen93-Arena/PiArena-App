@@ -6,23 +6,30 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Pi) {
-      // Init SDK
-      window.Pi.init({
-        version: "2.0",
-        sandbox: true // Đổi thành false nếu bạn đang dùng mainnet
-      });
+    if (typeof window !== 'undefined') {
+      const checkPi = setInterval(() => {
+        if (window.Pi && window.Pi.init && window.Pi.createPayment) {
+          // ✅ Khởi tạo SDK ở chế độ sandbox
+          try {
+            window.Pi.init({ version: "2.0", sandbox: true });
+            setPi(window.Pi);
+            setStatus("✅ Pi SDK đã sẵn sàng.");
+            clearInterval(checkPi);
+          } catch (err) {
+            console.error("❌ Lỗi khi init Pi SDK:", err);
+            setStatus("❌ Lỗi khi khởi tạo Pi SDK.");
+            clearInterval(checkPi);
+          }
+        }
+      }, 500);
 
-      setPi(window.Pi);
-      setStatus("✅ Pi SDK đã sẵn sàng.");
-    } else {
-      setStatus("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
+      return () => clearInterval(checkPi);
     }
   }, []);
 
   const handlePayment = async () => {
     if (!pi) {
-      setError("❌ Pi Network SDK chưa sẵn sàng. Hãy mở trong Pi Browser.");
+      setError("❌ Pi SDK chưa sẵn sàng.");
       return;
     }
 
@@ -32,7 +39,7 @@ export default function Home() {
         memo: "Arena Test Payment",
         metadata: { type: "test" },
         onReadyForServerApproval: (paymentId) => {
-          console.log("✅ Server Approval:", paymentId);
+          console.log("🔄 Server Approval:", paymentId);
         },
         onReadyForServerCompletion: (paymentId, txid) => {
           console.log("✅ Server Completion:", paymentId, txid);
