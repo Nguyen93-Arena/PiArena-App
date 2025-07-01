@@ -47,3 +47,12 @@ export default function Home() {
     </main>
   );
 }
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    if (window.Pi) {
+      alert("✅ Pi SDK đã sẵn sàng!");
+    } else {
+      alert("❌ SDK chưa sẵn sàng. Hãy chắc chắn bạn đang mở trong Pi Browser.");
+    }
+  }
+}, []);
