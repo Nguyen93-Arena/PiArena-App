@@ -6,14 +6,21 @@ export default function Home() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const checkPi = setInterval(() => {
-        if (window.Pi) {
+    const checkPi = setInterval(() => {
+      if (typeof window !== 'undefined' && window.Pi) {
+        try {
+          // Khởi tạo SDK
+          window.Pi.init({
+            version: "2.0",
+            sandbox: true // Bỏ dòng này nếu bạn đang chạy trên mainnet
+          });
           setPiReady(true);
           clearInterval(checkPi);
+        } catch (e) {
+          setMessage('⚠️ Không thể khởi tạo Pi SDK');
         }
-      }, 500);
-    }
+      }
+    }, 500);
   }, []);
 
   const handleTestPayment = async () => {
@@ -37,7 +44,7 @@ export default function Home() {
 
   return (
     <main style={{ padding: '2rem', fontFamily: 'Arial' }}>
-      <h1>Arena Pi Payment Test</h1>
+      <h1># Arena Pi Payment Test</h1>
       <button onClick={handleTestPayment} style={{ padding: '10px 20px' }}>
         Thanh toán thử
       </button>
