@@ -10,16 +10,13 @@ router.post('/approve', async (req, res) => {
 
   try {
     await validatePayment(paymentId);
-
     const response = await axios.post(`${PI_API_URL}/v2/payments/${paymentId}/approve`, {}, {
       headers: {
         Authorization: `Key ${process.env.PI_API_KEY}`
       }
     });
-
     res.json({ success: true, data: response.data });
   } catch (err) {
-    console.error(err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -33,10 +30,8 @@ router.post('/complete', async (req, res) => {
         Authorization: `Key ${process.env.PI_API_KEY}`
       }
     });
-
     res.json({ success: true, data: response.data });
   } catch (err) {
-    console.error(err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
