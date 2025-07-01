@@ -1,6 +1,6 @@
 onReadyForServerApproval: async (paymentId) => {
   try {
-    const res = await fetch("https://your-backend.vercel.app/api/payment/approve", {
+    const res = await fetch("https://piarena-app-1.onrender.com/api/payment/approve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentId })
@@ -14,7 +14,7 @@ onReadyForServerApproval: async (paymentId) => {
 
 onReadyForServerCompletion: async (paymentId, txid) => {
   try {
-    const res = await fetch("https://your-backend.vercel.app/api/payment/complete", {
+    const res = await fetch("https://piarena-app-1.onrender.com/api/payment/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentId, txid })
