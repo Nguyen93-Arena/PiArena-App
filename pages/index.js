@@ -1,79 +1,73 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [isPiReady, setIsPiReady] = useState(false);
+  const [pi, setPi] = useState(null);
+  const [status, setStatus] = useState("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Kiểm tra nếu Pi SDK đã sẵn sàng
-    if (typeof window !== "undefined" && window.Pi) {
-      try {
-        window.Pi.init({
-          version: "2.0",
-        });
-        setIsPiReady(true);
-      } catch (err) {
-        setError("❌ Lỗi khi khởi tạo Pi SDK: " + err.message);
+    const interval = setInterval(() => {
+      if (window.Pi && window.Pi.createPayment) {
+        setPi(window.Pi);
+        setStatus("✅ Pi SDK đã sẵn sàng.");
+        clearInterval(interval);
       }
-    } else {
-      setError("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở trong Pi Browser.");
-    }
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
   const handlePayment = async () => {
-    if (!window.Pi || !window.Pi.createPayment) {
-      alert("Pi SDK chưa sẵn sàng!");
+    if (!pi) {
+      setError("❌ Pi Network SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
       return;
     }
 
     try {
-      const paymentData = {
+      const paymentData = await pi.createPayment({
         amount: 0.001,
-        memo: "Test Payment",
-        metadata: { user: "test_user" },
-      };
-
-      const payment = await window.Pi.createPayment(paymentData, {
+        memo: "Arena Test Payment",
+        metadata: { type: "test" },
         onReadyForServerApproval: (paymentId) => {
-          console.log("Ready for server approval:", paymentId);
+          console.log("READY FOR SERVER APPROVAL:", paymentId);
         },
         onReadyForServerCompletion: (paymentId, txid) => {
-          console.log("Ready for server completion:", paymentId, txid);
+          console.log("READY FOR SERVER COMPLETION:", paymentId, txid);
         },
         onCancel: (paymentId) => {
-          console.log("Payment cancelled:", paymentId);
+          console.log("CANCELLED:", paymentId);
         },
         onError: (error, paymentId) => {
-          console.error("Payment error:", error, paymentId);
-        },
+          console.error("ERROR:", error);
+        }
       });
 
-      console.log("Payment result:", payment);
+      console.log("Payment created:", paymentData);
     } catch (err) {
-      setError("❌ Lỗi khi thực hiện thanh toán: " + err.message);
+      console.error(err);
+      setError("❌ Đã xảy ra lỗi khi tạo thanh toán.");
     }
   };
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
-      <h1>Arena Pi Payment Test</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h1># Arena Pi Payment Test</h1>
+      <p>{status}</p>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <button
         onClick={handlePayment}
-        disabled={!isPiReady}
         style={{
-          padding: "1rem",
-          fontSize: "16px",
-          backgroundColor: isPiReady ? "#4CAF50" : "#ccc",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: isPiReady ? "pointer" : "not-allowed",
-          marginTop: "1rem",
+          padding: '10px 20px',
+          fontSize: '16px',
+          marginTop: '1rem',
+          backgroundColor: '#ff9900',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
         }}
       >
         Thanh toán thử
       </button>
-    </div>
+    </main>
   );
 }
