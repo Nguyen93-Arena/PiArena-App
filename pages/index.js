@@ -1,4 +1,11 @@
-import { useEffect, useState } from 'react';
+import {useEffect(() => {
+  if (typeof window !== "undefined" && window.Pi && window.Pi.createPayment) {
+    setPi(window.Pi);
+    setStatus("✅ Pi SDK đã sẵn sàng.");
+  } else {
+    setStatus("⚠️ Pi SDK chưa sẵn sàng. Vui lòng đảm bảo bạn đang mở trong Pi Browser.");
+  }
+}, []);, useState } from 'react';
 
 export default function Home() {
   const [pi, setPi] = useState(null);
