@@ -1,36 +1,57 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [sdkReady, setSdkReady] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState("");
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (window.Pi) {
-        alert("✅ Pi SDK đã sẵn sàng!");
-      } else {
-        alert("❌ SDK chưa sẵn sàng. Hãy chắc chắn bạn đang mở trong Pi Browser.");
-      }
+    if (typeof window !== "undefined" && window.Pi) {
+      setSdkReady(true);
     }
   }, []);
 
+  const handlePayment = async () => {
+    if (!window.Pi) {
+      alert("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
+      return;
+    }
+
+    try {
+      const paymentData = {
+        amount: 0.001,
+        memo: "Thanh toán thử Arena",
+        metadata: { type: "test" },
+      };
+
+      const payment = await window.Pi.createPayment(paymentData);
+      setPaymentStatus("✔️ Thanh toán thành công!");
+    } catch (error) {
+      console.error("Lỗi thanh toán:", error);
+      setPaymentStatus("❌ Lỗi thanh toán hoặc bị hủy.");
+    }
+  };
+
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+    <div style={{ textAlign: "center", padding: "2rem" }}>
       <h1>Arena Pi Payment Test</h1>
-      <p>Nhấn nút bên dưới để thanh toán thử:</p>
-      <button onClick={() => {
-        if (window?.Pi) {
-          window.Pi.createPayment({
-            amount: 0.001,
-            memo: "Test payment",
-            metadata: { example: "test" }
-          }, {
-            onReadyForServerApproval: (paymentId) => console.log("Ready for approval", paymentId),
-            onReadyForServerCompletion: (paymentId, txid) => console.log("Complete payment", paymentId, txid),
-            onCancel: (paymentId) => console.log("Cancelled", paymentId),
-            onError: (err, paymentId) => console.error("Error", err)
-          });
-        } else {
-          alert("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
-        }
-      }}>Thanh toán thử</button>
+      <p>
+        {sdkReady
+          ? "✅ SDK Pi đã sẵn sàng"
+          : "⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser."}
+      </p>
+      <button
+        onClick={handlePayment}
+        disabled={!sdkReady}
+        style={{
+          marginTop: "1rem",
+          padding: "1rem 2rem",
+          fontSize: "16px",
+          cursor: sdkReady ? "pointer" : "not-allowed",
+        }}
+      >
+        Thanh toán thử
+      </button>
+      <p style={{ marginTop: "1rem" }}>{paymentStatus}</p>
     </div>
   );
 }
