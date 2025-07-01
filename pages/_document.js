@@ -5,7 +5,7 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        {/* Nhúng Pi Network SDK */}
+        {/* Pi SDK - Quan trọng để Pi Network hoạt động */}
         <script
           src="https://sdk.minepi.com/pi-sdk.js"
           defer
