@@ -2,21 +2,22 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [pi, setPi] = useState(null);
-  const [status, setStatus] = useState("🔄 Đang kiểm tra SDK...");
+  const [status, setStatus] = useState("🔄 Đang kiểm tra Pi SDK...");
   const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const checkPi = setInterval(() => {
         if (window.Pi && window.Pi.init && window.Pi.createPayment) {
           try {
-            // ✅ Khởi tạo Pi SDK với Mainnet
+            // ✅ Khởi tạo SDK cho Mainnet
             window.Pi.init({ version: "2.0", sandbox: false });
             setPi(window.Pi);
             setStatus("✅ Pi SDK đã sẵn sàng.");
             clearInterval(checkPi);
           } catch (err) {
-            console.error("❌ Lỗi khởi tạo Pi SDK:", err);
+            console.error("Lỗi init Pi SDK:", err);
             setStatus("❌ Lỗi khi khởi tạo Pi SDK.");
             clearInterval(checkPi);
           }
@@ -28,33 +29,36 @@ export default function Home() {
 
   const handlePayment = async () => {
     if (!pi) {
-      setError("❌ Pi SDK chưa sẵn sàng. Hãy mở bằng Pi Browser.");
+      setError("❌ Pi SDK chưa sẵn sàng.");
       return;
     }
 
     try {
       const payment = await pi.createPayment({
-        amount: 0.001, // Pi thật
+        amount: 0.001,
         memo: "Arena Mainnet Payment",
-        metadata: { type: "mainnet-test" },
+        metadata: { purpose: "test" },
         onReadyForServerApproval: (paymentId) => {
-          console.log("🟡 Chờ phê duyệt:", paymentId);
+          console.log("🔐 Server Approval:", paymentId);
+          setResult(`🔐 Server Approval: ${paymentId}`);
         },
         onReadyForServerCompletion: (paymentId, txid) => {
-          console.log("✅ Hoàn tất giao dịch:", paymentId, txid);
+          console.log("✅ Completed:", paymentId, txid);
+          setResult(`✅ Completed: ${paymentId}, TxID: ${txid}`);
         },
         onCancel: (paymentId) => {
-          console.warn("❌ Giao dịch bị huỷ:", paymentId);
+          console.warn("❌ Huỷ:", paymentId);
+          setResult(`❌ Huỷ: ${paymentId}`);
         },
-        onError: (error, paymentId) => {
-          console.error("❌ Lỗi giao dịch:", error, paymentId);
-          setError("❌ Lỗi xảy ra khi xử lý thanh toán.");
+        onError: (err, paymentId) => {
+          console.error("❌ Lỗi:", err, paymentId);
+          setResult(`❌ Lỗi: ${err?.message || "Không rõ"} (${paymentId})`);
         }
       });
 
-      console.log("🎉 Giao dịch đã tạo:", payment);
+      console.log("🎉 Payment data:", payment);
     } catch (err) {
-      console.error("❌ Lỗi trong createPayment:", err);
+      console.error("❌ Lỗi ngoài createPayment:", err);
       setError("❌ Đã xảy ra lỗi khi tạo thanh toán.");
     }
   };
@@ -64,13 +68,14 @@ export default function Home() {
       <h1>🏟 Arena Pi Payment Test (Mainnet)</h1>
       <p>{status}</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {result && <p style={{ color: 'green' }}>{result}</p>}
       <button
         onClick={handlePayment}
         style={{
-          padding: '12px 24px',
+          padding: '10px 20px',
           fontSize: '16px',
           marginTop: '1rem',
-          backgroundColor: '#ff6600',
+          backgroundColor: '#28a745',
           color: '#fff',
           border: 'none',
           borderRadius: '8px',
