@@ -2,37 +2,38 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [pi, setPi] = useState(null);
-  const [status, setStatus] = useState("🔄 Đang kiểm tra SDK...");
+  const [status, setStatus] = useState("🔄 Đang kiểm tra Pi SDK...");
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const checkPi = setInterval(() => {
         if (window.Pi && window.Pi.init && window.Pi.createPayment) {
-          // ✅ Khởi tạo SDK ở chế độ sandbox
           try {
-            window.Pi.init({ version: "2.0" });
+            window.Pi.init({ version: "2.0" }); // ✅ Mainnet
+            setPi(window.Pi);
             setStatus("✅ Pi SDK đã sẵn sàng.");
+            setError(null); // Reset lỗi nếu có
             clearInterval(checkPi);
           } catch (err) {
-            console.error("❌ Lỗi khi init Pi SDK:", err);
-            setStatus("❌ Lỗi khi khởi tạo Pi SDK.");
+            console.error("❌ Lỗi khi khởi tạo Pi SDK:", err);
+            setError("❌ Lỗi khi khởi tạo Pi SDK.");
             clearInterval(checkPi);
           }
         }
       }, 500);
-
       return () => clearInterval(checkPi);
     }
   }, []);
 
   const handlePayment = async () => {
     if (!pi) {
-      setError("❌ Pi SDK chưa sẵn sàng.");
+      setError("❌ Pi SDK chưa sẵn sàng. Hãy mở trong Pi Browser.");
       return;
     }
 
     try {
+      setError(null); // Reset lỗi cũ
       const payment = await pi.createPayment({
         amount: 0.001,
         memo: "Arena Test Payment",
@@ -48,6 +49,7 @@ export default function Home() {
         },
         onError: (err, paymentId) => {
           console.error("❌ Lỗi thanh toán:", err, paymentId);
+          setError("❌ Lỗi trong quá trình thanh toán.");
         }
       });
 
