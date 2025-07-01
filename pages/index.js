@@ -10,7 +10,7 @@ export default function Home() {
       const checkPi = setInterval(() => {
         if (window.Pi && window.Pi.init && window.Pi.createPayment) {
           try {
-            // ✅ Khởi tạo SDK cho Mainnet
+            // ✅ Khởi tạo Pi SDK cho Mainnet
             window.Pi.init({ version: "2.0", sandbox: false });
             setPi(window.Pi);
             setStatus("✅ Pi SDK đã sẵn sàng.");
@@ -38,17 +38,39 @@ export default function Home() {
         amount: 0.001,
         memo: "Arena Mainnet Payment",
         metadata: { type: "mainnet_test" },
-        onReadyForServerApproval: (paymentId) => {
-          console.log("✅ Ready for server approval:", paymentId);
-          // 👇 Ở Mainnet bạn phải gọi API backend của bạn để approve transaction
+
+        onReadyForServerApproval: async (paymentId) => {
+          try {
+            const res = await fetch("https://piarena-app-1.onrender.com/api/payment/approve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId })
+            });
+            const data = await res.json();
+            console.log("✅ Approve response:", data);
+          } catch (err) {
+            console.error("❌ Approve failed:", err);
+          }
         },
-        onReadyForServerCompletion: (paymentId, txid) => {
-          console.log("✅ Ready for server completion:", paymentId, txid);
-          // 👇 Bạn cũng cần gọi backend để complete
+
+        onReadyForServerCompletion: async (paymentId, txid) => {
+          try {
+            const res = await fetch("https://piarena-app-1.onrender.com/api/payment/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId, txid })
+            });
+            const data = await res.json();
+            console.log("✅ Complete response:", data);
+          } catch (err) {
+            console.error("❌ Completion failed:", err);
+          }
         },
+
         onCancel: (paymentId) => {
-          console.warn("❌ Hủy thanh toán:", paymentId);
+          console.warn("❌ Bị huỷ:", paymentId);
         },
+
         onError: (error, paymentId) => {
           console.error("❌ Lỗi thanh toán:", error, paymentId);
           setError("❌ Lỗi tạo thanh toán.");
@@ -75,7 +97,8 @@ export default function Home() {
           color: '#fff',
           border: 'none',
           borderRadius: '8px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          marginTop: '1rem'
         }}
       >
         💰 Thanh toán Pi Thật
