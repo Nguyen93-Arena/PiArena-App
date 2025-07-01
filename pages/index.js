@@ -1,33 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [pi, setPi] = useState(null);
-  const [status, setStatus] = useState("🔄 Đang khởi tạo Pi SDK...");
+  const [status, setStatus] = useState("🔄 Đang kiểm tra Pi SDK...");
   const [error, setError] = useState(null);
-  const [username, setUsername] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const checkPi = setInterval(() => {
-        if (window.Pi && window.Pi.init && window.Pi.authenticate && window.Pi.createPayment) {
+        if (window.Pi && window.Pi.init && window.Pi.createPayment) {
           try {
-            // 🔒 Khởi tạo SDK ở chế độ MAINNET
+            // ✅ Khởi tạo SDK cho Mainnet
             window.Pi.init({ version: "2.0", sandbox: false });
-
-            // ✅ Xác thực người dùng
-            window.Pi.authenticate(["username"], (user) => {
-              if (user && user.username) {
-                setUsername(user.username);
-                console.log("👤 Đăng nhập với Pi:", user.username);
-              }
-            });
-
             setPi(window.Pi);
             setStatus("✅ Pi SDK đã sẵn sàng.");
             clearInterval(checkPi);
           } catch (err) {
-            console.error("❌ Lỗi khởi tạo SDK:", err);
-            setStatus("❌ Lỗi khi khởi tạo Pi SDK.");
+            console.error("❌ Lỗi init SDK:", err);
+            setStatus("❌ Lỗi khởi tạo SDK.");
             clearInterval(checkPi);
           }
         }
@@ -38,7 +28,6 @@ export default function Home() {
   }, []);
 
   const handlePayment = async () => {
-    setError(null);
     if (!pi) {
       setError("❌ Pi SDK chưa sẵn sàng.");
       return;
@@ -47,47 +36,46 @@ export default function Home() {
     try {
       const payment = await pi.createPayment({
         amount: 0.001,
-        memo: "Arena Mainnet Test Payment",
-        metadata: { type: "mainnet-test" },
+        memo: "Arena Mainnet Payment",
+        metadata: { type: "mainnet_test" },
         onReadyForServerApproval: (paymentId) => {
-          console.log("🔄 Ready for server approval:", paymentId);
+          console.log("✅ Ready for server approval:", paymentId);
+          // 👇 Ở Mainnet bạn phải gọi API backend của bạn để approve transaction
         },
         onReadyForServerCompletion: (paymentId, txid) => {
           console.log("✅ Ready for server completion:", paymentId, txid);
+          // 👇 Bạn cũng cần gọi backend để complete
         },
         onCancel: (paymentId) => {
-          console.warn("❌ Bị huỷ:", paymentId);
+          console.warn("❌ Hủy thanh toán:", paymentId);
         },
-        onError: (err, paymentId) => {
-          console.error("❌ Lỗi:", err, paymentId);
-          setError("❌ Lỗi trong quá trình thanh toán.");
-        },
+        onError: (error, paymentId) => {
+          console.error("❌ Lỗi thanh toán:", error, paymentId);
+          setError("❌ Lỗi tạo thanh toán.");
+        }
       });
 
-      console.log("🎉 Payment created:", payment);
+      console.log("✅ Payment created:", payment);
     } catch (err) {
-      console.error("❌ Lỗi khi tạo payment:", err);
+      console.error("❌ Lỗi ngoài:", err);
       setError("❌ Không thể tạo thanh toán.");
     }
   };
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
+    <main style={{ padding: '2rem', fontFamily: 'Arial' }}>
       <h1>🏟 Arena Pi Payment Test (Mainnet)</h1>
       <p>{status}</p>
-      {username && <p>👤 Đăng nhập với: <strong>{username}</strong></p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <button
         onClick={handlePayment}
         style={{
-          padding: "10px 20px",
-          fontSize: "16px",
-          marginTop: "1rem",
-          backgroundColor: "#ff9900",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
+          padding: '10px 20px',
+          backgroundColor: '#ff9900',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
         }}
       >
         💰 Thanh toán Pi Thật
