@@ -1,54 +1,49 @@
 // pages/index.js
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [piReady, setPiReady] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState('');
+  const [status, setStatus] = useState("");
 
+  // Kiểm tra và khởi tạo Pi SDK
   useEffect(() => {
-    const checkPiSDK = setInterval(() => {
+    const checkPi = setInterval(() => {
       if (window.Pi) {
         try {
           window.Pi.init({ version: 2 });
           setPiReady(true);
-          console.log("✅ Pi SDK đã sẵn sàng");
-          clearInterval(checkPiSDK);
-        } catch (error) {
-          console.error("❌ Pi SDK init lỗi:", error);
+          console.log("✅ Pi SDK đã sẵn sàng.");
+          clearInterval(checkPi);
+        } catch (e) {
+          console.error("❌ Lỗi khi init Pi SDK:", e);
         }
       }
-    }, 1000);
+    }, 500);
 
-    return () => clearInterval(checkPiSDK);
+    return () => clearInterval(checkPi);
   }, []);
 
+  // Hàm xử lý thanh toán
   const handlePayment = async () => {
     if (!window.Pi || !piReady) {
-      setPaymentStatus("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
+      setStatus("⚠️ Pi SDK chưa sẵn sàng. Vui lòng mở bằng Pi Browser.");
       return;
     }
 
     try {
-      const paymentData = await window.Pi.createPayment({
+      const payment = await window.Pi.createPayment({
         amount: 0.001,
-        memo: "Test Payment for Arena App",
+        memo: "Test Payment",
         metadata: { type: "test" },
       });
 
-      setPaymentStatus("✅ Giao dịch thành công!");
-      console.log("🔔 Payment data:", paymentData);
-    } catch (error) {
-      setPaymentStatus(`❌ Lỗi: ${error.message}`);
+      console.log("✅ Thanh toán thành công:", payment);
+      setStatus("✅ Thanh toán thành công!");
+    } catch (err) {
+      console.error("❌ Lỗi khi thanh toán:", err);
+      setStatus("❌ Lỗi khi thanh toán: " + err.message);
     }
   };
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1># Arena Pi Payment Test</h1>
-      <button onClick={handlePayment} style={{ padding: "10px 20px", fontSize: "16px" }}>
-        Thanh toán thử
-      </button>
-      <p>{paymentStatus}</p>
-    </div>
-  );
-}
+    <main style={{ padding: 30, fontFamily: "Arial
