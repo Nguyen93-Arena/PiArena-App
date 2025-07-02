@@ -1,27 +1,17 @@
-onReadyForServerApproval: async (paymentId) => {
-  try {
-    const res = await fetch("https://piarena-app-1.onrender.com/api/payment/approve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentId })
-    });
-    const data = await res.json();
-    console.log("✅ Approve response:", data);
-  } catch (err) {
-    console.error("❌ Approve failed:", err);
-  }
-},
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const paymentRoutes = require('./routes/payments');
+const authRoutes = require('./routes/auth');
 
-onReadyForServerCompletion: async (paymentId, txid) => {
-  try {
-    const res = await fetch("https://piarena-app-1.onrender.com/api/payment/complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentId, txid })
-    });
-    const data = await res.json();
-    console.log("✅ Complete response:", data);
-  } catch (err) {
-    console.error("❌ Completion failed:", err);
-  }
-},
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use('/api/payment', paymentRoutes);
+app.use('/api/auth', authRoutes); // ✅ Thêm dòng này
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Backend server running on port ${PORT}`);
+});
