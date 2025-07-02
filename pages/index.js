@@ -1,102 +1,114 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [pi, setPi] = useState(null);
   const [status, setStatus] = useState("🔄 Đang kiểm tra Pi SDK...");
-  const [error, setError] = useState(null);
+  const [pi, setPi] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const checkPi = setInterval(() => {
-        if (window.Pi && window.Pi.init && window.Pi.createPayment) {
-          try {
-            window.Pi.init({ version: "2.0", sandbox: false });
-            setPi(window.Pi);
-            setStatus("✅ Pi SDK đã sẵn sàng.");
-            clearInterval(checkPi);
-          } catch (err) {
-            setStatus("❌ Lỗi khởi tạo Pi SDK.");
-            console.error("Lỗi init SDK:", err);
-            clearInterval(checkPi);
-          }
+    const interval = setInterval(() => {
+      if (
+        typeof window !== "undefined" &&
+        window.Pi &&
+        window.Pi.createPayment &&
+        window.Pi.init
+      ) {
+        try {
+          window.Pi.init({ version: "2.0", sandbox: false }); // ✅ Mainnet
+          setPi(window.Pi);
+          setStatus("✅ Pi SDK đã sẵn sàng.");
+        } catch (err) {
+          setStatus("❌ Không khởi tạo được Pi SDK.");
+          console.error(err);
+        } finally {
+          clearInterval(interval);
         }
-      }, 500);
+      }
+    }, 500);
 
-      return () => clearInterval(checkPi);
-    }
+    return () => clearInterval(interval);
   }, []);
 
   const handlePayment = async () => {
     if (!pi) {
-      setError("❌ Pi SDK chưa sẵn sàng.");
+      setStatus("❌ Pi SDK chưa sẵn sàng. Hãy mở bằng Pi Browser.");
       return;
     }
 
     try {
       const payment = await pi.createPayment({
-        amount: 0.001,
-        memo: "Arena Mainnet Payment",
-        metadata: { type: "mainnet" },
+        amount: 1,
+        memo: "Arena Pi Mainnet Payment",
+        metadata: { arena: true },
+
         onReadyForServerApproval: async (paymentId) => {
-          console.log("🔄 Approving...", paymentId);
+          setStatus("⏳ Đang gửi phê duyệt đến server...");
           try {
-            const res = await fetch("https://piarena-app-1.onrender.com/api/payment/approve", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ paymentId }),
-            });
+            const res = await fetch(
+              "https://arena-pi.onrender.com/api/payment/approve",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paymentId }),
+              }
+            );
             const data = await res.json();
-            console.log("✅ Approve result:", data);
+            if (data.success) {
+              setStatus("✅ Server đã phê duyệt giao dịch.");
+            } else {
+              setStatus("❌ Server từ chối approve.");
+            }
           } catch (err) {
-            console.error("❌ Approve error:", err);
+            console.error("❌ Approve failed:", err);
+            setStatus("❌ Lỗi khi gọi API approve.");
           }
         },
+
         onReadyForServerCompletion: async (paymentId, txid) => {
-          console.log("🔄 Completing...", paymentId, txid);
+          setStatus("⏳ Đang xác nhận hoàn tất thanh toán...");
           try {
-            const res = await fetch("https://piarena-app-1.onrender.com/api/payment/complete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ paymentId, txid }),
-            });
+            const res = await fetch(
+              "https://arena-pi.onrender.com/api/payment/complete",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paymentId, txid }),
+              }
+            );
             const data = await res.json();
-            console.log("✅ Completion result:", data);
+            if (data.success) {
+              setStatus("🎉 Giao dịch đã hoàn tất thành công!");
+            } else {
+              setStatus("❌ Server từ chối complete.");
+            }
           } catch (err) {
-            console.error("❌ Completion error:", err);
+            console.error("❌ Completion failed:", err);
+            setStatus("❌ Lỗi khi gọi API complete.");
           }
         },
+
         onCancel: (paymentId) => {
-          console.warn("❌ Người dùng đã huỷ:", paymentId);
+          setStatus("❌ Người dùng đã huỷ giao dịch.");
         },
-        onError: (err, paymentId) => {
-          console.error("❌ Lỗi thanh toán:", err, paymentId);
-          setError("❌ Lỗi tạo thanh toán.");
+
+        onError: (error, payment) => {
+          console.error("❌ Payment Error:", error, payment);
+          setStatus(`❌ Lỗi trong quá trình thanh toán: ${error?.message || "Không rõ lỗi"}`);
         },
       });
 
-      console.log("🎉 Payment created:", payment);
+      console.log("💰 Payment created:", payment);
+      setStatus("📤 Đã tạo giao dịch, chờ người dùng xác nhận...");
     } catch (err) {
-      console.error("❌ Exception:", err);
-      setError("❌ Không thể tạo thanh toán.");
+      console.error("❌ Tạo payment lỗi:", err);
+      setStatus("❌ Không thể tạo thanh toán. Kiểm tra Pi SDK hoặc mạng.");
     }
   };
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "Arial" }}>
+    <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
       <h1>🏟 Arena Pi Payment Test (Mainnet)</h1>
       <p>{status}</p>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <button
-        onClick={handlePayment}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#ff9900",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-        }}
-      >
+      <button onClick={handlePayment} disabled={!pi}>
         💰 Thanh toán Pi Thật
       </button>
     </main>
