@@ -1,5 +1,3 @@
-// ✅ frontend/pages/index.js import { useEffect, useState } from "react";
-
 export default function Home() { const [status, setStatus] = useState("\uD83D\uDD04 \u0110ang kiểm tra Pi SDK..."); const [pi, setPi] = useState(null);
 
 useEffect(() => { // Kiểm tra Pi SDK const interval = setInterval(() => { if ( typeof window !== "undefined" && window.Pi && window.Pi.createPayment && window.Pi.init ) { try { window.Pi.init({ version: "2.0", sandbox: false }); // Mainnet setPi(window.Pi); setStatus("\u2705 Pi SDK đ\u00e3 sẵn sàng (Mainnet)."); } catch (err) { setStatus("\u274C Không khởi tạo được Pi SDK."); console.error(err); } finally { clearInterval(interval); } } }, 500);
