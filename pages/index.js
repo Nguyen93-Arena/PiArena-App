@@ -13,7 +13,7 @@ export default function Home() {
         window.Pi.init
       ) {
         try {
-          window.Pi.init({ version: "2.0", sandbox: false }); // ✅ Mainnet
+          window.Pi.init({ version: "2.0", sandbox: false }); // Mainnet
           setPi(window.Pi);
           setStatus("✅ Pi SDK đã sẵn sàng.");
         } catch (err) {
@@ -30,7 +30,7 @@ export default function Home() {
 
   const handlePayment = async () => {
     if (!pi) {
-      setStatus("❌ Pi SDK chưa sẵn sàng. Hãy mở bằng Pi Browser.");
+      setStatus("❌ SDK chưa sẵn sàng. Mở bằng Pi Browser Mainnet.");
       return;
     }
 
@@ -39,9 +39,7 @@ export default function Home() {
         amount: 1,
         memo: "Arena Pi Mainnet Payment",
         metadata: { arena: true },
-
         onReadyForServerApproval: async (paymentId) => {
-          setStatus("⏳ Đang gửi phê duyệt đến server...");
           try {
             const res = await fetch(
               "https://arena-pi.onrender.com/api/payment/approve",
@@ -52,19 +50,12 @@ export default function Home() {
               }
             );
             const data = await res.json();
-            if (data.success) {
-              setStatus("✅ Server đã phê duyệt giao dịch.");
-            } else {
-              setStatus("❌ Server từ chối approve.");
-            }
+            console.log("✅ Approve response:", data);
           } catch (err) {
             console.error("❌ Approve failed:", err);
-            setStatus("❌ Lỗi khi gọi API approve.");
           }
         },
-
         onReadyForServerCompletion: async (paymentId, txid) => {
-          setStatus("⏳ Đang xác nhận hoàn tất thanh toán...");
           try {
             const res = await fetch(
               "https://arena-pi.onrender.com/api/payment/complete",
@@ -75,29 +66,19 @@ export default function Home() {
               }
             );
             const data = await res.json();
-            if (data.success) {
-              setStatus("🎉 Giao dịch đã hoàn tất thành công!");
-            } else {
-              setStatus("❌ Server từ chối complete.");
-            }
+            console.log("✅ Complete response:", data);
           } catch (err) {
             console.error("❌ Completion failed:", err);
-            setStatus("❌ Lỗi khi gọi API complete.");
           }
         },
-
-        onCancel: (paymentId) => {
-          setStatus("❌ Người dùng đã huỷ giao dịch.");
-        },
-
+        onCancel: (paymentId) => console.warn("❌ Cancelled:", paymentId),
         onError: (error, payment) => {
           console.error("❌ Payment Error:", error, payment);
-          setStatus(`❌ Lỗi trong quá trình thanh toán: ${error?.message || "Không rõ lỗi"}`);
+          setStatus("❌ Không thể tạo thanh toán. Kiểm tra Pi SDK hoặc mạng.");
         },
       });
 
       console.log("💰 Payment created:", payment);
-      setStatus("📤 Đã tạo giao dịch, chờ người dùng xác nhận...");
     } catch (err) {
       console.error("❌ Tạo payment lỗi:", err);
       setStatus("❌ Không thể tạo thanh toán. Kiểm tra Pi SDK hoặc mạng.");
